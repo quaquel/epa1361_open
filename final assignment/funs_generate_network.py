@@ -8,7 +8,7 @@ def to_dict_dropna(data):
     return {str(k): v.dropna().to_dict() for k, v in data.items()}
 
 
-def get_network(plann_steps_max=10):
+def get_network(num_events=30, plann_steps_max=10):
     """Build network uploading crucial parameters"""
 
     # Upload dike info
@@ -86,6 +86,9 @@ def get_network(plann_steps_max=10):
         G.nodes[dike]["C1"] = Muskingum_params.loc[G.nodes[dike]["prec_node"], "C1"]
         G.nodes[dike]["C2"] = Muskingum_params.loc[G.nodes[dike]["prec_node"], "C2"]
         G.nodes[dike]["C3"] = Muskingum_params.loc[G.nodes[dike]["prec_node"], "C3"]
+
+        # num_events Qpeaks per timestep, 30 microtimesteps per Qmax
+        G.nodes[dike]["waterlevels"] = np.zeros((num_events, 30))
 
     # The plausible 133 upstream wave-shapes:
     G.nodes["A.0"]["Qevents_shape"] = pd.read_excel(

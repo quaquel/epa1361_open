@@ -30,13 +30,14 @@ class DikeNetwork:
 
         # load network
         G, dike_list, dike_branch, planning_steps = funs_generate_network.get_network(
-            self.num_planning_steps
+            num_events=self.num_events, plann_steps_max=self.num_planning_steps,
         )
 
         # Load hydrological statistics:
         self.A = pd.read_excel("./data/hydrology/werklijn_params.xlsx")
 
         lowQ, highQ = werklijn_inv([0.992, 0.99992], self.A)
+        # TODO: by changing the num_events we can introduce climate change
         self.Qpeaks = np.unique(
             np.asarray(
                 [np.random.uniform(lowQ, highQ) / 6 for _ in range(0, self.num_events)]
@@ -177,7 +178,7 @@ class DikeNetwork:
         data = defaultdict(list)
 
         for s in self.planning_steps:
-            for Qpeak in Qpeaks:
+            for i, Qpeak in enumerate(Qpeaks):
                 node = G.nodes["A.0"]
                 waveshape_id = node["ID flood wave shape"]
 
@@ -226,6 +227,7 @@ class DikeNetwork:
                             node["wl"][t] = Lookuplin(
                                 node["rnew"], 0, 1, node["Qin"][t]
                             )
+                            node["waterlevels"][i, t-1] = node["wl"][t]
 
                             # Evaluate failure and, in case, Q in the floodplain and
                             # Q left in the river:
@@ -260,11 +262,12 @@ class DikeNetwork:
                         elif node["type"] == "downstream":
                             node["Qin"] = G.nodes[dikelist[n - 1]]["Qout"]
 
+
+
                 # Iterate over the network and store outcomes of interest for a
                 # given event
                 for dike in self.dikelist:
                     node = G.nodes[dike]
-
                     # If breaches occured:
                     if node["status"][-1] == True:
                         # Losses per event:
@@ -291,6 +294,7 @@ class DikeNetwork:
 
             EECosts = []
             # Iterate over the network,compute and store ooi over all events
+            waterlevels = []
             for dike in dikelist:
                 node = G.nodes[dike]
 
@@ -313,6 +317,8 @@ class DikeNetwork:
                 data[f"{dike}_Expected Annual Damage"].append(disc_EAD)
                 data[f"{dike}_Expected Number of Deaths"].append(END)
                 data[f"{dike}_Dike Investment Costs"].append(node[f"dikecosts {s}"])
+                waterlevels.append(np.min(node["waterlevels"]))
+            data["minimum_wl"] = min(waterlevels)
 
             data[f"RfR Total Costs"].append(G.nodes[f"RfR_projects {s}"]["cost"])
             data[f"Expected Evacuation Costs"].append(np.sum(EECosts))
