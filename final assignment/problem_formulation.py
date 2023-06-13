@@ -362,7 +362,6 @@ def get_model_for_problem_formulation(problem_formulation_id):
                 "Dike Investment Costs",
                 "Expected Number of Deaths",
             ]:
-
                 o = ArrayOutcome(f"{dike}_{entry}")
                 outcomes.append(o)
 
@@ -377,4 +376,7 @@ def get_model_for_problem_formulation(problem_formulation_id):
 
 
 if __name__ == "__main__":
-    get_model_for_problem_formulation(3)
+    model, _ = get_model_for_problem_formulation(3)
+
+    for l in model.outcomes:
+        print(repr(l))

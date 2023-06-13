@@ -123,7 +123,6 @@ class DikeNetwork:
                     )
 
     def __call__(self, timestep=1, **kwargs):
-
         G = copy.deepcopy(self.G)
         Qpeaks = self.Qpeaks
         dikelist = self.dikelist
@@ -205,7 +204,6 @@ class DikeNetwork:
                         # Select current node:
                         node = G.nodes[dikelist[n]]
                         if node["type"] == "dike":
-
                             # Muskingum parameters:
                             C1 = node["C1"]
                             C2 = node["C2"]
